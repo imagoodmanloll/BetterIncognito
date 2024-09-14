@@ -5979,6 +5979,59 @@ function sandbox:initialize()
     return environment.roblox
   end
 
+	environment.global.crypt.base64encode = function(data)
+		assert(data, "Missing #1 argument")
+		assert(typeof(data) == "string", "Expected #1 argument to be string, got "..typeof(data).. " instead")
+
+		local encoded = utils.base64_encode(data)
+
+		return encoded
+	end
+
+	environment.global.crypt.base64decode = function(data)
+		assert(data, "Missing #1 argument")
+		assert(typeof(data) == "string", "Expected #1 argument to be string, got "..typeof(data).. " instead")
+
+		local decoded = utils.base64_decode(data)
+
+		return decoded
+	end
+
+	environment.global.crypt.base64.encode = environment.global.crypt.base64encode
+	environment.global.crypt.base64_encode = environment.global.crypt.base64encode
+	environment.global.base64.encode = environment.global.crypt.base64encode
+
+	environment.global.crypt.base64.decode = environment.global.crypt.base64decode
+	environment.global.crypt.base64_decode = environment.global.crypt.base64decode
+	environment.global.base64.decode = environment.global.crypt.base64decode
+
+	environment.global.isrenderobj = function(...)
+		if table.find(drawings,...) then
+			return true
+		else
+			return false
+		end
+	end
+
+	environment.global.getrenderproperty = function(a,b)
+		return a[b]
+	end
+	environment.global.setrenderproperty = function(a,b,c)
+		a[b] = c
+	end
+
+	environment.global.cleardrawcache = function() -- idk there is no cache to clear
+		return true
+	end
+
+	environment.global.identifyexecutor = function()
+		return "BetterIncognito", "1.0"
+	end
+
+	environment.global.setfpscap = function()
+		return true
+	end
+
   environment.global.getnilinstances = function()
     local nili = {}
     for i, v in pairs(everything) do
@@ -6024,11 +6077,6 @@ function sandbox:initialize()
       return
     end
   end
-
-
-  environment.global.getthreadcontext = environment.global.getthreadidentity
-
-  environment.global.getidentity = environment.global.getthreadidentity
 
   environment.global.setthreadidentity = function(identity)
     fake_identity = identity
@@ -6160,10 +6208,6 @@ function sandbox:initialize()
     toTouch.CanCollide = anc
   end
 
-
-
-
-
   environment.global.debug.getinfo = function(f, options)
     if type(options) == "string" then
       options = string.lower(options) 
@@ -6194,6 +6238,16 @@ function sandbox:initialize()
       end
     end
     return result
+  end
+
+  environment.global.readfile = function(f, options)
+    assert(type(dir_path) == "string", "arg #1 must be type string")
+    local path_list = parse_file_path(dir_path)
+    local file_content = get_dir_content(filesys_storage, path_list)
+    if type(file_content) ~= "string" then
+        return error(`Path '{dir_path}' {if type(file_content) == "table" then "is a folder" else "cannot be determined"}`, 0)
+    end
+    return file_content
   end
 
   environment.global.lz4compress = function(str)
