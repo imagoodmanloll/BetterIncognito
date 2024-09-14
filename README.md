@@ -1,3 +1,3 @@
 # BetterIncognito
 
-This repository is currently only accessiable by the Better Incognito Development team. 
+This repository is currently only accessiable by the BetterIncognito Development team. 
