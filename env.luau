@@ -6021,18 +6021,6 @@ function sandbox:initialize()
     return result
   end
 
-  environment.global.debug.getproto = function(f)
-      local proto = {}
-      proto.source = debug.info(f, "s")
-      local numparams, is_vararg = debug.info(f, "a")
-      proto.numparams = numparams
-      proto.is_vararg = is_vararg and 1 or 0
-      proto.nups = debug.info(f, "u") or 0
-      proto.linedefined = debug.info(f, "l")
-      proto.what = proto.source == "[C]" and "C" or "Lua"
-      return proto
-  end
-
   environment.global.isreadonly = function(tbl)
     if type(tbl) ~= 'table' then return false end
     return table.isfrozen(tbl)
