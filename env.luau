@@ -1,4 +1,4 @@
--local ContentProvider = game:GetService("ContentProvider")
+local ContentProvider = game:GetService("ContentProvider")
 local HttpService = game:GetService("HttpService")
 
 -- UTILS
