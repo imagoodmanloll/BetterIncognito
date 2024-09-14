@@ -3,14 +3,12 @@ from exploit.betterincongito import gyat
 import os
 from exploit.funcs.instance import Instance
 from exploit.mempy.api import Memopy
-from exploit.funcs.logger import info, error
 import ctypes
 import requests # type: ignore
 from exploit.funcs.utils import Offsets
 import win32gui # type: ignore
 import time
 from pyfiglet import figlet_format as ascii
-from exploit.dumper.offset_dumper import main as dump
 import win32process
 from exploit.funcs.utils import GetRenderViewFromLog
 from colorama import Fore, Back, Style, init
