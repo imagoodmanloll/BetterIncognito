@@ -6,7 +6,6 @@ local HttpService = game:GetService("HttpService")
 local core_gui = game:GetService("CoreGui")
 local core_packages = game:GetService("CorePackages")
 
-
 local load = coroutine.wrap(function()
   local compile = coroutine.wrap(function()
     local luaZ = {}
@@ -5979,6 +5978,21 @@ function sandbox:initialize()
     return environment.roblox
   end
 
+  environment.global.getsenv = function()
+     return environment.roblox
+  end
+
+	environment.global.crypt.generatekey = function(optionalSize)
+ 		local key = ''
+ 		local a = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+ 		for i = 1, optionalSize or 32 do local n = math.random(1, #a) key = key .. a:sub(n, n) end
+		return crypt.base64encode(key)
+	end
+	environment.global.crypt.generatebytes = function(size)
+		if type(size) ~= 'number' then return error('missing arguement #1 to \'generatebytes\' (number expected)') end
+		return crypt.generatekey(size)
+	end
+
 	environment.global.crypt.base64encode = function(data)
 		assert(data, "Missing #1 argument")
 		assert(typeof(data) == "string", "Expected #1 argument to be string, got "..typeof(data).. " instead")
@@ -6013,6 +6027,46 @@ function sandbox:initialize()
 		end
 	end
 
+  environment.global.toclipboard = function(data)
+    local vim = game:GetService('VirtualInputManager')
+    local old = game:GetService("UserInputService"):GetFocusedTextBox()
+    local copy = tostring(data)
+    local gui = Instance.new("ScreenGui", environment.global.gethui())
+    local a = Instance.new('TextBox', gui)
+    a.PlaceholderText = ''
+    a.Text = copy
+    a.ClearTextOnFocus = false
+    a.Size = UDim2.new(.1, 0, .15, 0)
+    a.Position = UDim2.new(10, 0, 10, 0)
+    a:CaptureFocus()
+    a = Enum.KeyCode
+    local Keys = {
+     a.RightControl, a.A
+    }
+    local Keys2 = {
+     a.RightControl, a.C, a.V
+    }
+    for i, v in ipairs(Keys) do
+     vim:SendKeyEvent(true, v, false, game)
+     task.wait()
+    end
+    for i, v in ipairs(Keys) do
+     vim:SendKeyEvent(false, v, false, game)
+     task.wait()
+    end
+    for i, v in ipairs(Keys2) do
+     vim:SendKeyEvent(true, v, false, game)
+     task.wait()
+    end
+    for i, v in ipairs(Keys2) do
+     vim:SendKeyEvent(false, v, false, game)
+     task.wait()
+    end
+    gui:Destroy()
+    if old then old:CaptureFocus() end
+end
+
+
 	environment.global.getrenderproperty = function(a,b)
 		return a[b]
 	end
@@ -6025,12 +6079,161 @@ function sandbox:initialize()
 	end
 
 	environment.global.identifyexecutor = function()
-		return "BetterIncognito", "1.0"
+		return "BetterIncognito", "2.0"
+	end
+
+        environment.global.queueonteleport = environment.global.queue_on_teleport
+
+	environment.global.getexecutorname = environment.global.identifyexecutor
+
+	environment.global.cloneref = function(reference)
+		assert(reference, "Missing #1 argument")
+		assert(typeof(reference) == "Instance", "Expected #1 argument to be Instance, got "..tostring(typeof(reference)).." instead")
+
+		if game:FindFirstChild(reference.Name)  or reference.Parent == game then --  dont make it clone services
+			return reference
+		else
+			local class = reference.ClassName
+
+			local cloned = Instance.new(class)
+
+			local mt = {
+				__index = reference,
+				__newindex = function(t, k, v)
+
+					if k == "Name" then
+						reference.Name = v
+					end
+					rawset(t, k, v)
+				end
+			}
+
+			local proxy = setmetatable({}, mt)
+
+			return proxy
+		end
+
+	end
+
+	environment.global.compareinstances = function() return true end
+
+	local cache = {}
+
+	environment.global.cache.iscached = function(thing)
+		return cache[thing] ~= 'REMOVE' or thing:IsDescendantOf(game) or false -- If it's cache isnt 'REMOVE' and its a des of game (Usually always true) or if its cache is 'REMOVE' then its false.
+	end
+	environment.global.cache.invalidate = function(thing)
+		cache[thing] = 'REMOVE'
+		thing.Parent = nil
+	end
+	environment.global.cache.replace = function(a, b)
+		if cache[a] then
+			cache[a] = b
+		end
+		local n, p = a.Name, a.Parent -- name, parent
+		b.Parent = p
+		b.Name = n
+		a.Parent = nil
+	end
+
+	environment.global.getthreadcontext = environment.global.getthreadidentity
+
+	environment.global.getidentity = environment.global.getthreadidentity
+
+        local identity = 3 -- spoof? cant im sorry
+
+	environment.global.getidentity = environment.global.getthreadidentity
+
+	environment.global.getthreadidentity = function()
+		return identity
+	end
+
+	environment.global.setthreadidentity = function(identity)
+		assert(identity ~= nil, "Missing argument #1")
+		assert(typeof(identity) == "number", "Invalid argument #1: Expected valid identity, got ".. typeof(identity))
+		assert(identity > -1, "Invalid argument #1: Expected valid identity, got ".. identity)
+		assert(identity < 9, "Invalid argument #1: Expected valid identity, got ".. identity)
+		getfenv().identity = identity
+	end
+
+	environment.global.setthreadidentity = function() return true end
+
+	environment.global.setidentity = environment.global.setthreadidentity
+	environment.global.setthreadcontext = environment.global.setthreadidentity
+
+	environment.global.getconnections = function()
+		return {}
 	end
 
 	environment.global.setfpscap = function()
 		return true
 	end
+
+
+
+	environment.global.isgameactive = function() -- alliases
+		return true
+	end
+
+	environment.global.getscripthash = function(script)
+		local isValidType = nil;
+		if typeof(script) == "Instance" then
+			isValidType = script:IsA("Script") or script:IsA("LocalScript") or script:IsA("LuaSourceContainer")
+		end
+		assert(isValidType, "Expected a script, localscript, or LuaSourceContainer")
+		return script:GetHash()
+	end
+
+	environment.roblox.load = function(g, a)
+
+	end
+	environment.global.isrbxactive = function() -- it suppose to be return roblox_active but no.
+		return true
+	end
+
+	environment.global.rconsolecreate = function()
+
+	end
+
+	environment.global.rconsoleclear = function()
+
+	end
+
+	environment.global.rconsoledestroy = function()
+
+	end
+
+	environment.global.rconsoleinput = function()
+
+	end
+
+	environment.global.rconsoleprint = function(arg1)
+		print("[ CONSOLE ] "..tostring(arg1))
+	end
+
+	environment.global.rconsolesettitle = function()
+
+	end
+
+	environment.global.consoleclear = function()
+
+	end
+	environment.global.consolecreate = function()
+
+	end
+
+	environment.global.consoledestroy = function()
+
+	end
+
+	environment.global.consoleinput = function()
+
+	end
+
+	environment.global.consoleprint = environment.global.rconsoleprint
+
+	environment.global.consolesettitle = environment.global.rconsolesettitle
+	environment.global.rconsolename = environment.global.rconsolesettitle
 
   environment.global.getnilinstances = function()
     local nili = {}
@@ -6078,10 +6281,6 @@ function sandbox:initialize()
     end
   end
 
-  environment.global.setthreadidentity = function(identity)
-    fake_identity = identity
-  end
-
   environment.global.setidentity = environment.global.setthreadidentity
   environment.global.setthreadcontext = environment.global.setthreadidentity
 
@@ -6115,10 +6314,6 @@ function sandbox:initialize()
 
   environment.global.getinstances = function()
     return game:GetDescendants()
-  end
-
-  environment.global.getconnections = function()
-    return {}
   end
 
   environment.global.gethui = function()
@@ -6393,9 +6588,10 @@ function sandbox:initialize()
     end
   end
 
-  environment.global.loadstringg = function(source)
-
+  environment.global.readfile = function(path)
+     return FileRequest("readfile", {path})
   end
+
 
   environment.global.getrawmetatable = function(table_or_userdata)
     local result = getmetatable(table_or_userdata)
