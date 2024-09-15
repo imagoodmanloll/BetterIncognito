@@ -24,23 +24,29 @@ proto = gyat()
 proto.SetAutoExecPath(autoexec_path)
 plrname = None
 errors = {
-    0x0: Fore.GREEN + f"[INFO] {Fore.WHITE} Ready to execute scripts.",
-    0x1: "Currently injecting!",
-    0x2: "Failed to find Roblox process.",
-    0x3: "Failed to fetch DataModel :(",
-    0x4: "Failed to fetch certain modules.",
-    0x5: "Roblox terminated while injecting!",
-    0x6: "Failed to find Bridge!"
+    0x0: f"BetterIncognito is Injected",
+    0x1: f"Currently injecting!",
+    0x2: f"Failed to find Roblox process.",
+    0x3: f"Failed to fetch DataModel :(",
+    0x4: f"Failed to fetch certain modules.",
+    0x5: f"Roblox terminated while injecting!",
+    0x6: f"Failed to find Bridge!"
 }
 
 def get_current_time():
-    return Fore.LIGHTBLACK_EX + f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] " + Style.RESET_ALL
+    return Fore.LIGHTBLACK_EX + f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} " + Style.RESET_ALL
 
-def log(message):
-    print(f'{get_current_time()} {Fore.GREEN}[INFO] {Fore.WHITE}{message}')
+def infolog(message):
+    print(f'{Fore.LIGHTGREEN_EX}[BETTERINCOGNITO] {get_current_time()} {Fore.WHITE}{message}')
+
+def bridgelog(message):
+    print(f'{Fore.LIGHTYELLOW_EX}[BETTERINCOGNITO] {get_current_time()} {Fore.WHITE}{message}')
+
+def errorlog(message):
+    print(f'{Fore.LIGHTRED_EX}[BETTERINCOGNITO] {get_current_time()} {Fore.WHITE}{message}')
 
 if __name__ == "__main__":
-    os.system("title sigma injector")
+    os.system("title BetterIncognito")
     os.system("@echo off")
     os.system("cls")
     jk = 2
@@ -51,22 +57,23 @@ if __name__ == "__main__":
             while True:
                 time.sleep(2)
                 if not win32gui.FindWindow(None, "Roblox"):
-                    log('Waiting for roblox..')
+                    infolog('Waiting for roblox..')
                 else:
-                    input(log('Roblox Opened! Press Enter once you see the roblox window..'))
+                    input(infolog('Roblox Opened! Press Enter once you see the roblox window..'))
                     break
+        hwnd = win32gui.FindWindow(None, "Roblox")
+        _, pid = win32process.GetWindowThreadProcessId(hwnd)
         os.system('cls')
-        log('Process found')
+        infolog('Roblox Process Found')
+        time.sleep(1)
+        infolog(f'Process PID: {pid}')
+        infolog(f'Init Script Initalized')
         time.sleep(2)
-        log('Got PID')
-        log('Got SexyModel')
-        log('Injecting method: Homepage')
-        log('Got LocalPlayer')
-        log('Found Workspace Folder')
-        log('Found Autoexecute Folder')
-        time.sleep(5)
-        log('Check passed, injecting... (might take around 5 - 10 seconds)')
-        time.sleep(10)
-        log('Please join a game.')
+        infolog(f'Homepage Injection')
+        bridgelog('Preparing Bridge')
+        time.sleep(2)
+        bridgelog('Bridge Initalized')
+        time.sleep(3)
+        infolog('Please join a game')
         compiled = proto.Inject()
-        print(errors.get(compiled, "Unknown error"))
+        infolog(errors.get(compiled, "Unknown error"))
