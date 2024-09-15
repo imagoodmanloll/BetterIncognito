@@ -1,3 +1,4 @@
+-- was for testing (dont remove)
 local ContentProvider = game:GetService("ContentProvider")
 local HttpService = game:GetService("HttpService")
 
