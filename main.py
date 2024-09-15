@@ -4,14 +4,15 @@ import os
 from exploit.funcs.instance import Instance
 from exploit.mempy.api import Memopy
 import ctypes
-import requests # type: ignore
+import requests  # type: ignore
 from exploit.funcs.utils import Offsets
-import win32gui # type: ignore
+import win32gui  # type: ignore
 import time
 from pyfiglet import figlet_format as ascii
 import win32process
 from exploit.funcs.utils import GetRenderViewFromLog
 from colorama import Fore, Back, Style, init
+from datetime import datetime
 
 main_dir = os.path.dirname(os.path.abspath(__file__))
 autoexec_path = os.path.join(main_dir, "autoexec")
@@ -32,6 +33,12 @@ errors = {
     0x6: "Failed to find Bridge!"
 }
 
+def get_current_time():
+    return Fore.LIGHTBLACK_EX + f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] " + Style.RESET_ALL
+
+def log(message):
+    print(f'{get_current_time()} {Fore.GREEN}[INFO] {Fore.WHITE}{message}')
+
 if __name__ == "__main__":
     os.system("title sigma injector")
     os.system("@echo off")
@@ -40,26 +47,26 @@ if __name__ == "__main__":
     if jk == 1:
         exit(0)
     else:
-            if not win32gui.FindWindow(None, "Roblox"):
-             while True:
-                 time.sleep(2)
-                 if not win32gui.FindWindow(None, "Roblox"):
-                    print(Fore.GREEN + f'[INFO] {Fore.WHITE} Waiting for roblox..')
-                 else:
-                      input(Fore.GREEN + f'[INFO] {Fore.WHITE} Roblox Opened! Press Enter once you see the roblox window..')
-                      break
-            os.system('cls')
-            print(Fore.GREEN + f'[INFO] {Fore.WHITE} Process found')
-            time.sleep(2)
-            print(Fore.GREEN + f'[INFO] {Fore.WHITE} Got PID')
-            print(Fore.GREEN + f'[INFO] {Fore.WHITE} Got SexyModel')
-            print(Fore.GREEN + f'[INFO] {Fore.WHITE} Injecting method: Homepage')
-            print(Fore.GREEN + f'[INFO] {Fore.WHITE} Got LocalPlayer')
-            print(Fore.GREEN + f'[INFO] {Fore.WHITE} Found Workspace Folder')
-            print(Fore.GREEN + f'[INFO] {Fore.WHITE} Found Autoexecute Folder')
-            time.sleep(5)
-            print(Fore.GREEN + f'[INFO] {Fore.WHITE} Check passed, injecting... (might take around 5 - 10 seconds)')
-            time.sleep(10)
-            print(Fore.GREEN + f'[INFO] {Fore.WHITE} Please join a game.')
-            compiled = proto.Inject()
-            print(errors.get(compiled, "Unknown error"))
+        if not win32gui.FindWindow(None, "Roblox"):
+            while True:
+                time.sleep(2)
+                if not win32gui.FindWindow(None, "Roblox"):
+                    log('Waiting for roblox..')
+                else:
+                    input(log('Roblox Opened! Press Enter once you see the roblox window..'))
+                    break
+        os.system('cls')
+        log('Process found')
+        time.sleep(2)
+        log('Got PID')
+        log('Got SexyModel')
+        log('Injecting method: Homepage')
+        log('Got LocalPlayer')
+        log('Found Workspace Folder')
+        log('Found Autoexecute Folder')
+        time.sleep(5)
+        log('Check passed, injecting... (might take around 5 - 10 seconds)')
+        time.sleep(10)
+        log('Please join a game.')
+        compiled = proto.Inject()
+        print(errors.get(compiled, "Unknown error"))
