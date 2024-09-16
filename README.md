@@ -1,3 +1,3 @@
-# BetterIncognito
+# Indigo
 
-This repository is currently only accessiable by the BetterIncognito Development team. 
+This repository is currently only accessiable by the Indigo Development team. 
