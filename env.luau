@@ -5099,188 +5099,207 @@ end
 local bridge = {}
 
 bridge.validActions = {
-  ["load_source"] = {"string", "string"},
-  ["setclipboard"] = {},
-  ["input_action"] = {},
-  ["HttpGet"] = {},
-  ["get_script"] = {},
+	--script stuff
+	["load_source"] = {"string", "string"},
+	["HttpGet"] = {},
+	["get_script"] = {},
+	--file system lib
+	["writefile"] = {}, 
+	["isfile"] = {},
+	["isfile"] = {},
+	["delfile"] = {},
+	["readfile"] = {},
+	["makefolder"] = {},
+	["delfolder"] = {},
+	["isfolder"] = {},
+	--misc
+	["gethwid"] = {},
+	["getbytecode"] = {},
+	["input_action"] = {},
+	["messagebox"] = {},
+	["loadautoexec"] = {},
+	--clipboard
+	["getclipboard"] = {},
+	["setclipboard"] = {},
+	--console 
+	["rconsolecreate"] = {},	
 } -- go to loadstring to change it
 
 
 
 function bridge:send(action, ...) 
-  local args = {...}
-  local success, res = pcall(function()
+	local args = {...}
+	local success, res = pcall(function()
 
-    if not self.validActions[action] then
-      warn("[ DEBUG ] Bridge.send -> cancelled")
-      return
-    end
+		if not self.validActions[action] then
+			warn("[ DEBUG ] Bridge.send -> cancelled")
+			return
+		end
 
-    local url = "http://localhost:8000/bridge?action=" .. action
-    for i, arg in ipairs(args) do
-      url = url .. "&arg" .. i .. "=" .. HttpService:UrlEncode(tostring(arg))
-    end
-    local params = {
-      Url = url,
-      Method = "GET",
-      Headers = {
-        ["Content-Type"] = "application/json"
-      }
-    }
-    local request = HttpService:RequestInternal(params)
-    local response = nil
-    local requestCompletedEvent = Instance.new("BindableEvent")
-    request:Start(function(success, result)
-      response = result
-      requestCompletedEvent:Fire()
-    end)
-    requestCompletedEvent.Event:Wait()
+		local url = "http://localhost:8000/bridge?action=" .. action
+		for i, arg in ipairs(args) do
+			url = url .. "&arg" .. i .. "=" .. HttpService:UrlEncode(tostring(arg))
+		end
+		local params = {
+			Url = url,
+			Method = "GET",
+			Headers = {
+				["Content-Type"] = "application/json"
+			}
+		}
+		local request = HttpService:RequestInternal(params)
+		local response = nil
+		local requestCompletedEvent = Instance.new("BindableEvent")
+		request:Start(function(success, result)
+			response = result
+			requestCompletedEvent:Fire()
+		end)
+		requestCompletedEvent.Event:Wait()
 
-    if response.StatusMessage == "OK" then 
-      return HttpService:JSONDecode(response.Body) 
-    end
-  end)
-  if not success then
-    warn("[ ERROR ] -> "..tostring(res))
-  else
-    return res
-  end
+		if response.StatusMessage == "OK" then 
+			return HttpService:JSONDecode(response.Body) or HttpService:JSONDecode(web_response.Body)
+		end
+	end)
+	if not success then
+		warn("[ ERROR ] -> "..tostring(res))
+	else
+		return res
+	end
 end
 
 local old = load
 
 local val_the_sigma = function(code)
-  local module = utils.fetch_modules()[1]:Clone()
-  module.Source = "return function(...) " .. code .. " end"
-  local func = require(module)
-  func = setfenv(func, getfenv())
-  return func
+	local module = utils.fetch_modules()[1]:Clone()
+	module.Source = "return function(...) " .. code .. " end"
+	local func = require(module)
+	func = setfenv(func, getfenv())
+	return func
 end
 
 -- ENVIROMENT
 
 local function get_buildins()
-  return {
-    -- Luau Functions
-    ["assert"] = "function",
-    ["error"] = "function",
-    ["getfenv"] = "function",
-    ["getmetatable"] = "function",
-    ["ipairs"] = "function",
-    ["loadstring"] = "function",
-    ["newproxy"] = "function",
-    ["next"] = "function",
-    ["pairs"] = "function",
-    ["pcall"] = "function",
-    ["print"] = "function",
-    ["rawequal"] = "function",
-    ["rawget"] = "function",
-    ["rawlen"] = "function",
-    ["rawset"] = "function",
-    ["select"] = "function",
-    ["setfenv"] = "function",
-    ["setmetatable"] = "function",
-    ["tonumber"] = "function",
-    ["tostring"] = "function",
-    ["unpack"] = "function",
-    ["xpcall"] = "function",
-    ["type"] = "function",
-    ["typeof"] = "function",
+	return {
+		-- Luau Functions
+		["assert"] = "function",
+		["error"] = "function",
+		["getfenv"] = "function",
+		["getmetatable"] = "function",
+		["ipairs"] = "function",
+		["loadstring"] = "function",
+		["newproxy"] = "function",
+		["next"] = "function",
+		["pairs"] = "function",
+		["pcall"] = "function",
+		["print"] = "function",
+		["rawequal"] = "function",
+		["rawget"] = "function",
+		["rawlen"] = "function",
+		["rawset"] = "function",
+		["select"] = "function",
+		["setfenv"] = "function",
+		["setmetatable"] = "function",
+		["tonumber"] = "function",
+		["tostring"] = "function",
+		["unpack"] = "function",
+		["xpcall"] = "function",
+		["type"] = "function",
+		["typeof"] = "function",
 
-    -- Luau Functions (Deprecated)
-    ["collectgarbage"] = "function",
+		-- Luau Functions (Deprecated)
+		["collectgarbage"] = "function",
 
-    -- Luau Variables
-    ["_G"] = "table",
-    ["_VERSION"] = "string",
+		-- Luau Variables
+		["_G"] = "table",
+		["_VERSION"] = "string",
 
-    -- Luau Tables
-    ["bit32"] = "table",
-    ["coroutine"] = "table",
-    ["debug"] = "table",
-    ["math"] = "table",
-    ["os"] = "table",
-    ["string"] = "table",
-    ["table"] = "table",
-    ["utf8"] = "table",
-    ["buffer"] = "table",
+		-- Luau Tables
+		["bit32"] = "table",
+		["coroutine"] = "table",
+		["debug"] = "table",
+		["math"] = "table",
+		["os"] = "table",
+		["string"] = "table",
+		["table"] = "table",
+		["utf8"] = "table",
+		["buffer"] = "table",
 
-    -- Roblox Functions
-    ["DebuggerManager"] = "function",
-    ["delay"] = "function",
-    ["gcinfo"] = "function",
-    ["PluginManager"] = "function",
-    ["require"] = "function",
-    ["settings"] = "function",
-    ["spawn"] = "function",
-    ["tick"] = "function",
-    ["time"] = "function",
-    ["UserSettings"] = "function",
-    ["wait"] = "function",
-    ["warn"] = "function",
+		-- Roblox Functions
+		["DebuggerManager"] = "function",
+		["delay"] = "function",
+		["gcinfo"] = "function",
+		["PluginManager"] = "function",
+		["require"] = "function",
+		["settings"] = "function",
+		["spawn"] = "function",
+		["tick"] = "function",
+		["time"] = "function",
+		["UserSettings"] = "function",
+		["wait"] = "function",
+		["warn"] = "function",
 
-    -- Roblox Functions (Deprecated)
-    ["Delay"] = "function",
-    ["ElapsedTime"] = "function",
-    ["elapsedTime"] = "function",
-    ["printidentity"] = "function",
-    ["Spawn"] = "function",
-    ["Stats"] = "function",
-    ["stats"] = "function",
-    ["Version"] = "function",
-    ["version"] = "function",
-    ["Wait"] = "function",
-    ["ypcall"] = "function",
+		-- Roblox Functions (Deprecated)
+		["Delay"] = "function",
+		["ElapsedTime"] = "function",
+		["elapsedTime"] = "function",
+		["printidentity"] = "function",
+		["Spawn"] = "function",
+		["Stats"] = "function",
+		["stats"] = "function",
+		["Version"] = "function",
+		["version"] = "function",
+		["Wait"] = "function",
+		["ypcall"] = "function",
 
-    -- Roblox Variables
-    ["game"] = "Instance",
-    ["plugin"] = "Instance",
-    ["shared"] = "table",
-    ["workspace"] = "Instance",
+		-- Roblox Variables
+		["game"] = "Instance",
+		["plugin"] = "Instance",
+		["shared"] = "table",
+		["workspace"] = "Instance",
 
-    -- Roblox Variables (Deprecated)
-    ["Game"] = "Instance",
-    ["Workspace"] = "Instance",
+		-- Roblox Variables (Deprecated)
+		["Game"] = "Instance",
+		["Workspace"] = "Instance",
 
-    -- Roblox Tables
-    ["Axes"] = "table",
-    ["BrickColor"] = "table",
-    ["CatalogSearchParams"] = "table",
-    ["CFrame"] = "table",
-    ["Color3"] = "table",
-    ["ColorSequence"] = "table",
-    ["ColorSequenceKeypoint"] = "table",
-    ["DateTime"] = "table",
-    ["DockWidgetPluginGuiInfo"] = "table",
-    ["Enum"] = "Enums",
-    ["Faces"] = "table",
-    ["FloatCurveKey"] = "table",
-    ["Font"] = "table",
-    ["Instance"] = "table",
-    ["NumberRange"] = "table",
-    ["NumberSequence"] = "table",
-    ["NumberSequenceKeypoint"] = "table",
-    ["OverlapParams"] = "table",
-    ["PathWaypoint"] = "table",
-    ["PhysicalProperties"] = "table",
-    ["Random"] = "table",
-    ["Ray"] = "table",
-    ["RaycastParams"] = "table",
-    ["Rect"] = "table",
-    ["Region3"] = "table",
-    ["Region3int16"] = "table",
-    ["RotationCurveKey"] = "table",
-    ["SharedTable"] = "table",
-    ["task"] = "table",
-    ["TweenInfo"] = "table",
-    ["UDim"] = "table",
-    ["UDim2"] = "table",
-    ["Vector2"] = "table",
-    ["Vector2int16"] = "table",
-    ["Vector3"] = "table",
-    ["Vector3int16"] = "table",
-  }
+		-- Roblox Tables
+		["Axes"] = "table",
+		["BrickColor"] = "table",
+		["CatalogSearchParams"] = "table",
+		["CFrame"] = "table",
+		["Color3"] = "table",
+		["ColorSequence"] = "table",
+		["ColorSequenceKeypoint"] = "table",
+		["DateTime"] = "table",
+		["DockWidgetPluginGuiInfo"] = "table",
+		["Enum"] = "Enums",
+		["Faces"] = "table",
+		["FloatCurveKey"] = "table",
+		["Font"] = "table",
+		["Instance"] = "table",
+		["NumberRange"] = "table",
+		["NumberSequence"] = "table",
+		["NumberSequenceKeypoint"] = "table",
+		["OverlapParams"] = "table",
+		["PathWaypoint"] = "table",
+		["PhysicalProperties"] = "table",
+		["Random"] = "table",
+		["Ray"] = "table",
+		["RaycastParams"] = "table",
+		["Rect"] = "table",
+		["Region3"] = "table",
+		["Region3int16"] = "table",
+		["RotationCurveKey"] = "table",
+		["SharedTable"] = "table",
+		["task"] = "table",
+		["TweenInfo"] = "table",
+		["UDim"] = "table",
+		["UDim2"] = "table",
+		["Vector2"] = "table",
+		["Vector2int16"] = "table",
+		["Vector3"] = "table",
+		["Vector3int16"] = "table",
+	}
 end
 
 local function _apply_env(func, env)
@@ -5958,14 +5977,6 @@ function sandbox:initialize()
 
   local everything = {game}
 
-  game.DescendantRemoving:Connect(function(des)
-    cache[des] = 'REMOVE'
-  end)
-  game.DescendantAdded:Connect(function(des)
-    cache[des] = true
-    table.insert(everything, des)
-  end)
-
   for i, v in pairs(game:GetDescendants()) do
     table.insert(everything, v)
   end
@@ -6026,46 +6037,46 @@ function sandbox:initialize()
 			return false
 		end
 	end
-
-  environment.global.toclipboard = function(data)
-    local vim = game:GetService('VirtualInputManager')
-    local old = game:GetService("UserInputService"):GetFocusedTextBox()
-    local copy = tostring(data)
-    local gui = Instance.new("ScreenGui", environment.global.gethui())
-    local a = Instance.new('TextBox', gui)
-    a.PlaceholderText = ''
-    a.Text = copy
-    a.ClearTextOnFocus = false
-    a.Size = UDim2.new(.1, 0, .15, 0)
-    a.Position = UDim2.new(10, 0, 10, 0)
-    a:CaptureFocus()
-    a = Enum.KeyCode
-    local Keys = {
-     a.RightControl, a.A
-    }
-    local Keys2 = {
-     a.RightControl, a.C, a.V
-    }
-    for i, v in ipairs(Keys) do
-     vim:SendKeyEvent(true, v, false, game)
-     task.wait()
+    
+    environment.global.toclipboard = function(data)
+        local vim = game:GetService('VirtualInputManager')
+        local old = game:GetService("UserInputService"):GetFocusedTextBox()
+        local copy = tostring(data)
+        local gui = Instance.new("ScreenGui", environment.global.gethui())
+        local a = Instance.new('TextBox', gui)
+        a.PlaceholderText = ''
+        a.Text = copy
+        a.ClearTextOnFocus = false
+        a.Size = UDim2.new(.1, 0, .15, 0)
+        a.Position = UDim2.new(10, 0, 10, 0)
+        a:CaptureFocus()
+        a = Enum.KeyCode
+        local Keys = {
+         a.RightControl, a.A
+        }
+        local Keys2 = {
+         a.RightControl, a.C, a.V
+        }
+        for i, v in ipairs(Keys) do
+         vim:SendKeyEvent(true, v, false, game)
+         task.wait()
+        end
+        for i, v in ipairs(Keys) do
+         vim:SendKeyEvent(false, v, false, game)
+         task.wait()
+        end
+        for i, v in ipairs(Keys2) do
+         vim:SendKeyEvent(true, v, false, game)
+         task.wait()
+        end
+        for i, v in ipairs(Keys2) do
+         vim:SendKeyEvent(false, v, false, game)
+         task.wait()
+        end
+        gui:Destroy()
+        if old then old:CaptureFocus() end
     end
-    for i, v in ipairs(Keys) do
-     vim:SendKeyEvent(false, v, false, game)
-     task.wait()
-    end
-    for i, v in ipairs(Keys2) do
-     vim:SendKeyEvent(true, v, false, game)
-     task.wait()
-    end
-    for i, v in ipairs(Keys2) do
-     vim:SendKeyEvent(false, v, false, game)
-     task.wait()
-    end
-    gui:Destroy()
-    if old then old:CaptureFocus() end
-end
-
+    
 
 	environment.global.getrenderproperty = function(a,b)
 		return a[b]
@@ -6117,6 +6128,17 @@ end
 
 	environment.global.compareinstances = function() return true end
 
+	environment.global.getrawmetatable = function(object)
+    	return metatbl[object]
+	end
+	environment.global.setrawmetatable = function(object, metatable)
+		local mtbl = getrawmetatable(object)
+		table.foreach(metatable, function(some, thing)
+			mtbl[some] = thing
+		end)
+		return object
+	end
+
 	local cache = {}
 
 	environment.global.cache.iscached = function(thing)
@@ -6139,6 +6161,27 @@ end
 	environment.global.getthreadcontext = environment.global.getthreadidentity
 
 	environment.global.getidentity = environment.global.getthreadidentity
+
+	environment.global.saveinstance = function()
+		local Params = {
+			RepoURL = "https://raw.githubusercontent.com/luau/SynSaveInstance/main/",
+			SSI = "saveinstance",
+		}
+		local synsaveinstance = loadstring(environment.global.HttpGet(Params.RepoURL .. Params.SSI .. ".luau", true), Params.SSI)()
+		local SaveOptions = {
+			ReadMe = true,
+			IsolatePlayers = true,
+			FilePath = string.format("%d", tick())
+		}
+		synsaveinstance(SaveOptions)
+	end
+	environment.global.synsaveinstance = environment.global.saveinstance
+	environment.global.saveplace = environment.global.saveinstance
+	local everything = {game}
+
+	for i, v in pairs(game:GetDescendants()) do
+		table.insert(everything, v)
+	end
 
         local identity = 3 -- spoof? cant im sorry
 
@@ -6165,11 +6208,100 @@ end
 		return {}
 	end
 
+	environment.global.isreadonly = function(tbl)
+		assert(typeof(table) == "table", "invalid argument #1: Expected table")
+		return table.isfrozen(tbl)
+	end
+
+	environment.global.writefile = function(location, content)
+		assert(string.find(location, '.exe') == nil, "Attempt to use writefile on a blacklisted file extension")
+		assert(string.find(location, '.bat') == nil, "Attempt to use writefile on a blacklisted file extension")
+		assert(string.find(location, '.py') == nil, "Attempt to use writefile on a blacklisted file extension")
+		assert(string.find(location, '.com') == nil, "Attempt to use writefile on a blacklisted file extension")
+		assert(string.find(location, '.cmd') == nil, "Attempt to use writefile on a blacklisted file extension")
+		assert(string.find(location, '.inf') == nil, "Attempt to use writefile on a blacklisted file extension")
+		assert(string.find(location, '.ipa') == nil, "Attempt to use writefile on a blacklisted file extension")
+		assert(string.find(location, '.apk') == nil, "Attempt to use writefile on a blacklisted file extension")
+		assert(string.find(location, '.apkm') == nil, "Attempt to use writefile on a blacklisted file extension")
+		assert(string.find(location, '.js') == nil, "Attempt to use writefile on a blacklisted file extension")
+		assert(string.find(location, '.vb') == nil, "Attempt to use writefile on a blacklisted file extension")
+		assert(string.find(location, '.vbs') == nil, "Attempt to use writefile on a blacklisted file extension")
+		assert(string.find(location, '.sys') == nil, "Attempt to use writefile on a blacklisted file extension")
+		assert(string.find(location, '.dll') == nil, "Attempt to use writefile on a blacklisted file extension")
+		assert(string.find(location, '.rar') == nil, "Attempt to use writefile on a blacklisted file extension")
+		assert(string.find(location, '.zip') == nil, "Attempt to use writefile on a blacklisted file extension")
+		bridge:send("writefile", location, tostring(content))
+	end
+
+	environment.global.readfile = function(location)
+		return bridge:send("readfile", location).message
+	end
+
+	environment.global.makefolder = function(location)
+		bridge:send("makefolder", location)
+	end
+
+	environment.global.loadfile = function(path, ...)
+		local content = readfile(path)
+		local s,e = pcall(function() 
+			loadstring(content)() 
+		end)
+		return e or nil
+	end
+
+	environment.global.isfile = function(location)
+ 		return bridge:send("isfile", location).message
+	end
+	
+	
+	environment.global.isfolder = function(location)
+ 		return bridge:send("isfolder", location).message
+	end
+
+	
+	environment.global.delfile = function(location)
+		bridge:send("delfile", location)
+	end
+
+
+	environment.global.appendfile = function(location, data)
+		if isfile(location) then
+			local string = readfile(location)..data
+			writefile(location, string)
+		else
+			writefile(location, data)
+		end
+	end
+
 	environment.global.setfpscap = function()
 		return true
 	end
 
+	environment.global.crypt.hash = function(data, alg)
+			local v1 = HashLib[alg]
+			local v2 = HashLib[data]
+			if not v1 and not v2 then
+				error(string.format("No algorithm found with name '%s' or '%s'", alg, data))
+			end
+			if v1 then
+				return v1(data)
+			elseif v2 then
+				return v2(alg)
+			end
+	end
 
+	environment.global.crypt.encrypt = function(a, b)
+	local result = {}
+		a = tostring(a) b = tostring(b)
+		for i = 1, #a do
+			local byte = string.byte(a, i)
+			local keyByte = string.byte(b, (i - 1) % #b + 1)
+			table.insert(result, string.char(bit32.bxor(byte, keyByte)))
+		end
+		return table.concat(result)
+	end
+
+        environment.global.crypt.decrypt = environment.global.crypt.encrypt
 
 	environment.global.isgameactive = function() -- alliases
 		return true
@@ -6245,42 +6377,6 @@ end
   end
   environment.global.getgc = environment.global.getnilinstances
 
-  environment.global.isreadonly = function(tbl)
-    if type(tbl) ~= 'table' then return false end
-    return table.isfrozen(tbl)
-  end
-
-  environment.global.makefolder = function(folder_name)
-    pcall(function()
-      bridge:send("makefolder", folder_name)
-    end)
-  end
-
-  environment.global.isfolder = function(folder)
-    assert(folder, "Missing #1 argument")
-    assert(typeof(folder) == "string", "Expected #1 argument to be string, got "..tostring(typeof(folder)).. " instead")
-
-    local response = bridge:send("isfolder", folder)
-
-    if typeof(response) == "table" then
-      local request_status = response["status"]
-
-      if request_status == "success" then
-        if response["message"] == "True" then
-          return true
-        else
-          return false
-        end
-      else
-        error(response["message"])
-        return
-      end
-    else
-      error("isfolder failed")
-      return
-    end
-  end
-
   environment.global.setidentity = environment.global.setthreadidentity
   environment.global.setthreadcontext = environment.global.setthreadidentity
 
@@ -6318,6 +6414,10 @@ end
 
   environment.global.gethui = function()
     return game:GetService("CoreGui")
+  end
+
+  environment.global.getscriptclosure = function(module)
+    return environment.global.getrenv().require(module)
   end
 
   environment.global.getscripts = function()
@@ -6433,16 +6533,6 @@ end
       end
     end
     return result
-  end
-
-  environment.global.readfile = function(f, options)
-    assert(type(dir_path) == "string", "arg #1 must be type string")
-    local path_list = parse_file_path(dir_path)
-    local file_content = get_dir_content(filesys_storage, path_list)
-    if type(file_content) ~= "string" then
-        return error(`Path '{dir_path}' {if type(file_content) == "table" then "is a folder" else "cannot be determined"}`, 0)
-    end
-    return file_content
   end
 
   environment.global.lz4compress = function(str)
