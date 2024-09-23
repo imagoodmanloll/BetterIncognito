@@ -1,3 +1,5 @@
+-- not my base but who cares
+
 local ContentProvider = game:GetService("ContentProvider")
 local HttpService = game:GetService("HttpService")
 
